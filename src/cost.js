@@ -44,15 +44,18 @@ export function buildCostPreview({ caption, mediaCount, targetChannels, quota, x
 
   const limits = quota?.limits || {};
   const usage = quota?.usage || {};
+  // Limits are -1 on unlimited plans (business) — display ∞ and never refuse.
   if (limits.postsPerDay != null) {
-    parts.push(`posts today ${usage.postsToday ?? 0}/${limits.postsPerDay}`);
-    if ((usage.postsToday ?? 0) >= limits.postsPerDay) {
+    const unlimited = limits.postsPerDay < 0;
+    parts.push(`posts today ${usage.postsToday ?? 0}/${unlimited ? "∞" : limits.postsPerDay}`);
+    if (!unlimited && (usage.postsToday ?? 0) >= limits.postsPerDay) {
       refusal = `Daily post quota exhausted (${usage.postsToday}/${limits.postsPerDay} on the ${quota.plan ?? "current"} plan). Try again tomorrow or upgrade at https://app.bulkpublish.com/settings/billing`;
     }
   }
   if (limits.postsPerMonth != null) {
-    parts.push(`posts this month ${usage.postsThisMonth ?? 0}/${limits.postsPerMonth}`);
-    if (!refusal && (usage.postsThisMonth ?? 0) >= limits.postsPerMonth) {
+    const unlimited = limits.postsPerMonth < 0;
+    parts.push(`posts this month ${usage.postsThisMonth ?? 0}/${unlimited ? "∞" : limits.postsPerMonth}`);
+    if (!refusal && !unlimited && (usage.postsThisMonth ?? 0) >= limits.postsPerMonth) {
       refusal = `Monthly post quota exhausted (${usage.postsThisMonth}/${limits.postsPerMonth} on the ${quota.plan ?? "current"} plan). Upgrade at https://app.bulkpublish.com/settings/billing`;
     }
   }
