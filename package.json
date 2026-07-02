@@ -1,0 +1,54 @@
+{
+  "name": "notion-bulkpublish",
+  "version": "1.0.0",
+  "description": "Publish to 11 social media platforms from a Notion database via BulkPublish",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "notion-bulkpublish": "src/cli.js"
+  },
+  "scripts": {
+    "start": "node src/cli.js",
+    "once": "node src/cli.js once",
+    "test": "node --test test/"
+  },
+  "keywords": [
+    "notion",
+    "social-media",
+    "publishing",
+    "scheduling",
+    "automation",
+    "bulkpublish",
+    "facebook",
+    "instagram",
+    "twitter",
+    "tiktok",
+    "linkedin",
+    "youtube",
+    "threads",
+    "bluesky",
+    "pinterest",
+    "mastodon"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/azeemkafridi/notion-bulkpublish",
+  "author": {
+    "name": "BulkPublish",
+    "email": "notion@bulkpublish.com",
+    "url": "https://bulkpublish.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/azeemkafridi/notion-bulkpublish"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@notionhq/client": "^2.3.0",
+    "dotenv": "^16.4.5"
+  },
+  "files": [
+    "src"
+  ]
+}
