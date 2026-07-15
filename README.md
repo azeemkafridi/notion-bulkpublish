@@ -10,7 +10,7 @@
 
 Add rows to a Notion database. When you flip a row's **Status** to **Ready**, this service publishes it to your connected channels via the [BulkPublish](https://bulkpublish.com) API, writes the resulting post URL(s) back into the row, and flips Status to **Posted** (or **Failed** with the exact error).
 
-Supports all BulkPublish platforms: Facebook, Instagram, X (Twitter), TikTok, YouTube, Threads, Bluesky, Pinterest, Google Business Profile, LinkedIn, Mastodon.
+Supports all BulkPublish platforms: Facebook, Instagram, X (Twitter), TikTok, YouTube, Threads, Bluesky, Pinterest, Google Business Profile, LinkedIn, Mastodon, Reddit, Discord, Telegram.
 
 ## How it works
 
