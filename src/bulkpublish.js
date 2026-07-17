@@ -43,6 +43,21 @@ export class BulkPublishClient {
     return data.channels || [];
   }
 
+  /**
+   * GET /api/channel-sets → [{ id, name, channelIds, ... }] ordered by name.
+   * Channel sets are saved channel groups for one-click targeting
+   * (max 50 sets per org; names unique per org).
+   * Returns [] on error so channel resolution still works without sets.
+   */
+  async listChannelSets() {
+    try {
+      const data = await this.#request("GET", "/api/channel-sets");
+      return Array.isArray(data) ? data : [];
+    } catch {
+      return []; // non-fatal: set targeting is optional
+    }
+  }
+
   /** POST /api/posts — create a draft or scheduled post. */
   createPost(post) {
     return this.#request("POST", "/api/posts", { body: post });

@@ -43,8 +43,8 @@ export async function processPage({ config, notion, bp, page, log = console.log 
     if (!row.caption) return await fail("Caption is empty — add post text before setting Status to Ready.");
     if (!row.channelNames.length) return await fail("No channels selected — add at least one platform/channel to the Channels property.");
 
-    const channels = await bp.listChannels();
-    const targetChannels = resolveChannels(row.channelNames, channels);
+    const [channels, channelSets] = await Promise.all([bp.listChannels(), bp.listChannelSets()]);
+    const targetChannels = resolveChannels(row.channelNames, channels, channelSets);
 
     const limitError = checkCharLimits(row.caption, targetChannels);
     if (limitError) return await fail(limitError);

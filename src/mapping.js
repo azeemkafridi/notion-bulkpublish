@@ -73,10 +73,13 @@ export function extractRow(page, propNames) {
 /**
  * Resolve the Channels multi-select values against GET /api/channels.
  * Each value may be a channel ID, a platform name ("x", "linkedin", ...) —
- * which selects ALL active channels for that platform — or an account name.
+ * which selects ALL active channels for that platform — an account name, or a
+ * **channel set** name (GET /api/channel-sets — saved channel groups for
+ * one-click targeting; max 50 sets per org, names unique per org), which
+ * expands to every active channel in the set's channelIds.
  * Throws with a descriptive message when a value matches nothing.
  */
-export function resolveChannels(channelNames, channels) {
+export function resolveChannels(channelNames, channels, channelSets = []) {
   const active = channels.filter((c) => c.isActive !== false);
   const resolved = new Map(); // id → channel
 
@@ -88,13 +91,25 @@ export function resolveChannels(channelNames, channels) {
     const byAccount = active.filter(
       (c) => (c.accountName || "").toLowerCase() === lower
     );
+    const set = channelSets.find((s) => (s.name || "").toLowerCase() === lower);
+    const bySet = set
+      ? active.filter((c) => (set.channelIds || []).some((id) => String(id) === String(c.id)))
+      : [];
 
-    const matches = byId ? [byId] : byPlatform.length ? byPlatform : byAccount;
+    const matches = byId ? [byId] : byPlatform.length ? byPlatform : byAccount.length ? byAccount : bySet;
     if (!matches.length) {
+      if (set) {
+        throw new Error(
+          `Channel set "${set.name}" matched, but none of its channels are active/connected. ` +
+            `Review the set at https://app.bulkpublish.com/channels.`
+        );
+      }
       const available = [...new Set(active.map((c) => `${c.platform} (${c.accountName})`))];
+      const setNames = channelSets.map((s) => s.name);
       throw new Error(
-        `Channel "${value}" not found. Use a platform name, account name, or channel ID. ` +
-          `Connected channels: ${available.join(", ") || "none"}`
+        `Channel "${value}" not found. Use a platform name, account name, channel ID, or channel set name. ` +
+          `Connected channels: ${available.join(", ") || "none"}.` +
+          (setNames.length ? ` Channel sets: ${setNames.join(", ")}` : "")
       );
     }
     for (const c of matches) resolved.set(c.id, c);

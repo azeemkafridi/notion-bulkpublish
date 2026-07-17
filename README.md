@@ -43,7 +43,7 @@ Create a database with these properties (names are the defaults; override any of
 | Property   | Type                         | Purpose |
 |------------|------------------------------|---------|
 | `Caption`  | Title *or* Rich text         | The post text. |
-| `Channels` | Multi-select                 | Where to post. Each option is a **platform name** (`x`, `linkedin`, `instagram`, …) which targets *all* your active channels on that platform, an **account name** (as shown in BulkPublish), or a raw **channel ID**. |
+| `Channels` | Multi-select                 | Where to post. Each option is a **platform name** (`x`, `linkedin`, `instagram`, …) which targets *all* your active channels on that platform, an **account name** (as shown in BulkPublish), a raw **channel ID**, or a **channel set name** (see below). |
 | `Media`    | Files & media                | Images/videos to attach. Downloaded from Notion and uploaded to BulkPublish (max 100 MB each; jpeg/png/webp/gif/mp4/mov/webm). |
 | `Schedule` | Date (with time)             | Optional. Set → the post is scheduled for that time. Empty → published immediately. |
 | `Status`   | Select *or* Status           | Options: `Ready`, `Posting`, `Posted`, `Failed`. You set **Ready**; the service manages the rest. |
@@ -75,6 +75,10 @@ Example crontab entry (every 5 minutes):
 ```cron
 */5 * * * * cd /path/to/notion-bulkpublish && npx notion-bulkpublish once >> publish.log 2>&1
 ```
+
+### Channel sets
+
+**Channel sets** are saved channel groups in BulkPublish for one-click targeting (max **50 sets per org**; **names are unique per org**). Create them in the BulkPublish composer, then put the set's name in the `Channels` property — it expands to every active channel in the set. Resolution order when a value is ambiguous: channel ID → platform name → account name → channel set name.
 
 ## Row lifecycle
 

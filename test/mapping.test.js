@@ -183,3 +183,28 @@ test("buildCostPreview refuses when the monthly quota is exhausted", () => {
   });
   assert.match(preview.refusal, /Monthly post quota exhausted \(30\/30/);
 });
+
+const CHANNEL_SETS = [
+  { id: 1, name: "Launch Day", channelIds: ["ch_1", "ch_2", "ch_4"] },
+  { id: 2, name: "Dead Set", channelIds: ["ch_4"] },
+];
+
+test("resolveChannels expands a channel set name into its active channels", () => {
+  const bySet = resolveChannels(["launch day"], CHANNELS, CHANNEL_SETS);
+  assert.deepEqual(bySet.map((c) => c.id).sort(), ["ch_1", "ch_2"]); // inactive ch_4 excluded
+
+  // Mixing a set with a plain value dedupes overlapping channels.
+  const mixed = resolveChannels(["Launch Day", "linkedin"], CHANNELS, CHANNEL_SETS);
+  assert.deepEqual(mixed.map((c) => c.id).sort(), ["ch_1", "ch_2"]);
+});
+
+test("resolveChannels errors clearly when a set has no active channels, and lists set names for unknown values", () => {
+  assert.throws(
+    () => resolveChannels(["Dead Set"], CHANNELS, CHANNEL_SETS),
+    /Channel set "Dead Set" matched, but none of its channels are active/
+  );
+  assert.throws(
+    () => resolveChannels(["myspace"], CHANNELS, CHANNEL_SETS),
+    /channel set name.*Channel sets: Launch Day, Dead Set/s
+  );
+});
