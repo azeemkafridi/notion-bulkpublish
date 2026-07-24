@@ -27,7 +27,8 @@ export function richTextToPlain(items = []) {
 
 /**
  * Extract the fields we care about from a Notion page, using the configured
- * property names. Returns { caption, channelNames, mediaFiles, scheduledAt, status }.
+ * property names. Returns { caption, channelNames, mediaFiles, scheduledAt,
+ * status, requestApproval }.
  */
 export function extractRow(page, propNames) {
   const props = page.properties || {};
@@ -67,7 +68,17 @@ export function extractRow(page, propNames) {
     : statusProp?.type === "status" ? statusProp.status?.name ?? null
     : null;
 
-  return { caption: caption.trim(), channelNames, mediaFiles, scheduledAt, status };
+  // Optional "Request Approval" column: holds the scheduled post for team
+  // approval (approvalStatus becomes "pending") instead of publishing it.
+  const approvalProp = props[propNames.approval];
+  let requestApproval = false;
+  if (approvalProp?.type === "checkbox") {
+    requestApproval = Boolean(approvalProp.checkbox);
+  } else if (approvalProp?.type === "select") {
+    requestApproval = /^(yes|true|required?)$/i.test(approvalProp.select?.name || "");
+  }
+
+  return { caption: caption.trim(), channelNames, mediaFiles, scheduledAt, status, requestApproval };
 }
 
 /**

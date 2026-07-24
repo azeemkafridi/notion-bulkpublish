@@ -48,6 +48,7 @@ Create a database with these properties (names are the defaults; override any of
 | `Schedule` | Date (with time)             | Optional. Set → the post is scheduled for that time. Empty → published immediately. |
 | `Status`   | Select *or* Status           | Options: `Ready`, `Posting`, `Posted`, `Failed`. You set **Ready**; the service manages the rest. |
 | `Result`   | Rich text (*or* URL)         | Written by the service: platform post URLs on success, the error message on failure. |
+| `Request Approval` | Checkbox (optional)  | Tick to hold the post for team approval instead of publishing (see below). |
 
 ### 3. BulkPublish API key
 
@@ -89,6 +90,16 @@ Example crontab entry (every 5 minutes):
 5. The service polls for per-platform outcomes and writes them into **Result**, then sets Status to **Posted** (or **Failed**).
 
 If anything goes wrong, Status becomes **Failed** and **Result** contains the exact reason (e.g. `Caption is 300 characters, over the limit: x allows 280.`). Fix the row and set it back to **Ready** to retry.
+
+## Approval flow
+
+BulkPublish teams can require posts to be reviewed before they go out. Approval is **orthogonal to the post status**: a post whose `approvalStatus` is `pending` or `rejected` is skipped by the scheduler even when it is scheduled and overdue.
+
+- Tick the optional **`Request Approval`** checkbox on a row (or set `BULKPUBLISH_REQUEST_APPROVAL=true` to apply it to every row) and the created post gets `approvalStatus = pending`. **Result** then reads *"Waiting for approval…"* rather than claiming the post is on its way.
+- A teammate whose role has `post:approve` (owner, admin, approver) approves or rejects it at [app.bulkpublish.com/posts](https://app.bulkpublish.com/posts). Approving an already-overdue post publishes it immediately; rejecting returns it to draft with a reason and notifies the author.
+- Members whose role lacks `post:publish` (contributors) are held for approval **server-side regardless of the checkbox**. If such a key tries to publish immediately, the row is marked **Failed** with *"Your role can't publish directly — submit for approval instead."*
+
+The library client also exposes `approvePost(id)`, `rejectPost(id, reason)` and `listPosts({ approvalStatus })` for scripting your own review tooling.
 
 ## Character limits (checked client-side)
 

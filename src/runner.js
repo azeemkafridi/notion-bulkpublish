@@ -83,24 +83,50 @@ export async function processPage({ config, notion, bp, page, log = console.log 
 
     // --- Create + publish ------------------------------------------------------
     const scheduled = Boolean(row.scheduledAt);
+    const requestApproval = Boolean(row.requestApproval || config.requestApproval);
     const post = await bp.createPost({
       content: row.caption,
       channels: targetChannels.map((c) => ({ channelId: c.id })),
       mediaFiles: mediaIds,
       status: scheduled ? "scheduled" : "draft",
       ...(scheduled ? { scheduledAt: row.scheduledAt, timezone: config.timezone } : {}),
+      ...(requestApproval ? { requestApproval: true } : {}),
     });
 
     if (scheduled) {
-      const msg = `Scheduled for ${row.scheduledAt} (post ${post.id}) → ${targetChannels
-        .map((c) => c.platform)
-        .join(", ")}`;
+      const platforms = targetChannels.map((c) => c.platform).join(", ");
+      const msg =
+        post.approvalStatus === "pending"
+          ? `Waiting for approval — scheduled for ${row.scheduledAt} (post ${post.id}) → ${platforms}. ` +
+            `A teammate with the approver role must approve it at https://app.bulkpublish.com/posts before it publishes.`
+          : `Scheduled for ${row.scheduledAt} (post ${post.id}) → ${platforms}`;
       log(`[row] ${msg}`);
       await notion.updatePage(page, { status: config.statusValues.posted, result: msg });
       return;
     }
 
-    await bp.publishPost(post.id);
+    // An unscheduled post held for approval can't be published from here.
+    if (post.approvalStatus === "pending") {
+      const msg =
+        `Post ${post.id} is awaiting team approval (approvalStatus "pending") and will not publish until ` +
+        `a teammate with the approver role approves it at https://app.bulkpublish.com/posts.`;
+      log(`[row] ${msg}`);
+      await notion.updatePage(page, { status: config.statusValues.posted, result: msg });
+      return;
+    }
+
+    try {
+      await bp.publishPost(post.id);
+    } catch (err) {
+      if (err.code === "APPROVAL_REQUIRED" || err.status === 403) {
+        return await fail(
+          "Your role can't publish directly — submit for approval instead. " +
+            `Tick the "${config.properties.approval}" column (or set BULKPUBLISH_REQUEST_APPROVAL=true) ` +
+            `and add a Schedule date, then a teammate with the approver role approves post ${post.id}.`
+        );
+      }
+      throw err;
+    }
     const outcome = await waitForOutcome(bp, post.id, log);
     if (outcome.failed.length && !outcome.succeeded.length) {
       return await fail(outcome.summary);

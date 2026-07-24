@@ -16,6 +16,7 @@ const PROPS = {
   schedule: "Schedule",
   status: "Status",
   result: "Result",
+  approval: "Request Approval",
 };
 
 /** Fake Notion page mimicking the real API shape. */
@@ -63,6 +64,25 @@ test("extractRow maps title, multi-select, files, date and status", () => {
   );
   assert.equal(row.scheduledAt, "2026-07-04T10:00:00.000+05:00");
   assert.equal(row.status, "Ready");
+});
+
+test("extractRow reads the optional Request Approval column", () => {
+  assert.equal(extractRow(makePage(), PROPS).requestApproval, false);
+  assert.equal(
+    extractRow(makePage({ "Request Approval": { type: "checkbox", checkbox: true } }), PROPS)
+      .requestApproval,
+    true
+  );
+  assert.equal(
+    extractRow(makePage({ "Request Approval": { type: "checkbox", checkbox: false } }), PROPS)
+      .requestApproval,
+    false
+  );
+  assert.equal(
+    extractRow(makePage({ "Request Approval": { type: "select", select: { name: "Yes" } } }), PROPS)
+      .requestApproval,
+    true
+  );
 });
 
 test("extractRow handles rich_text caption, status-type Status and empty schedule", () => {

@@ -63,9 +63,50 @@ export class BulkPublishClient {
     return this.#request("POST", "/api/posts", { body: post });
   }
 
-  /** POST /api/posts/{id}/publish — publish an existing draft now. */
+  /**
+   * POST /api/posts/{id}/publish — publish an existing draft now.
+   * Requires a role with post:publish — contributors get 403 APPROVAL_REQUIRED
+   * and must submit the post for approval instead (create with
+   * `requestApproval: true`, then a teammate approves).
+   */
   publishPost(id) {
     return this.#request("POST", `/api/posts/${id}/publish`);
+  }
+
+  /**
+   * GET /api/posts → posts. Supports the optional approvalStatus filter
+   * (none | pending | approved | rejected).
+   */
+  async listPosts({ approvalStatus, status, limit } = {}) {
+    const qs = new URLSearchParams();
+    if (approvalStatus) qs.set("approvalStatus", approvalStatus);
+    if (status) qs.set("status", status);
+    if (limit) qs.set("limit", String(limit));
+    const suffix = qs.toString() ? `?${qs}` : "";
+    const data = await this.#request("GET", `/api/posts${suffix}`);
+    return data?.posts || (Array.isArray(data) ? data : []);
+  }
+
+  /**
+   * POST /api/posts/{id}/approve — requires a role with post:approve (owner,
+   * admin, approver). Releases a post with approvalStatus 'pending': it
+   * publishes at its scheduled time, or immediately if that time has already
+   * passed. The author is notified in-app.
+   */
+  approvePost(id) {
+    return this.#request("POST", `/api/posts/${id}/approve`);
+  }
+
+  /**
+   * POST /api/posts/{id}/reject — requires a role with post:approve. The post
+   * returns to draft with approvalStatus 'rejected' and the optional reason
+   * (max 2000 chars); the author is notified and can edit + reschedule to
+   * resubmit for approval.
+   */
+  rejectPost(id, reason) {
+    return this.#request("POST", `/api/posts/${id}/reject`, {
+      body: reason ? { reason: String(reason).slice(0, 2000) } : {},
+    });
   }
 
   /** GET /api/posts/{id} → includes postPlatforms: [{ platform, status, errorMessage, platformUrl }] */

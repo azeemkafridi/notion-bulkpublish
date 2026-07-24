@@ -22,7 +22,12 @@ export function loadConfig(env = process.env) {
       schedule: env.NOTION_PROP_SCHEDULE || "Schedule",
       status: env.NOTION_PROP_STATUS || "Status",
       result: env.NOTION_PROP_RESULT || "Result",
+      approval: env.NOTION_PROP_APPROVAL || "Request Approval",
     },
+    // Hold every scheduled post for team approval, even when a row has no
+    // "Request Approval" checkbox. Members whose role lacks post:publish
+    // (contributors) are held server-side regardless of this setting.
+    requestApproval: String(env.BULKPUBLISH_REQUEST_APPROVAL || "").toLowerCase() === "true",
     statusValues: {
       ready: env.NOTION_STATUS_READY || "Ready",
       posting: env.NOTION_STATUS_POSTING || "Posting",

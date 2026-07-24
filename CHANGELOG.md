@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0 (2026-07-24)
+
+- **Post approval flow.** New optional `Request Approval` checkbox column (override with `NOTION_PROP_APPROVAL`) sends `requestApproval: true` so the scheduled post is held for team approval (`approvalStatus` becomes `pending`) instead of going out. `BULKPUBLISH_REQUEST_APPROVAL=true` applies it to every row.
+- `Result` now says when a post is waiting for approval instead of claiming it was scheduled to publish.
+- Publish 403 `APPROVAL_REQUIRED` (roles without `post:publish`) is reported as "Your role can't publish directly — submit for approval instead."
+- Client: `approvePost(id)`, `rejectPost(id, reason)` (POST /api/posts/{id}/approve|reject, needs `post:approve` — owner/admin/approver) and `listPosts({ approvalStatus })`.
+
 ## 1.1.0 (2026-07-17)
 
 - Channel sets: the `Channels` property now also accepts a **channel set name** — a saved channel group in BulkPublish (max 50 sets per org, names unique per org) — which expands to every active channel in the set. Client: new `listChannelSets()` (GET /api/channel-sets).
