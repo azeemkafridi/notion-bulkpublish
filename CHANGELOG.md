@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0 (2026-08-01)
+
+- **Link tracking.** New optional `Link Tracking` column (override the name with `NOTION_PROP_LINK_TRACKING`) sets `linkTrackingOverride` per row: a **Select** of `On`/`Off` forces bulkpubli.sh shortening either way, while a **Checkbox** can only force it on — unticked means *inherit*, not *off*, so adding the column never silently disables tracking. `BULKPUBLISH_LINK_TRACKING=true|false` applies a run-wide override, and a row's own column wins over it.
+- Fixed: **`npm test` never ran the test suite.** The script was `node --test test/`, which Node resolves as a *module* path and fails on with `MODULE_NOT_FOUND` — so the suite reported a failure without executing a single assertion. Now `node --test test/*.test.js`; 14 tests pass.
+- Fixed: the package description said 14 platforms; Tumblr brought it to 15.
+
 ## 1.2.0 (2026-07-24)
 
 - **Post approval flow.** New optional `Request Approval` checkbox column (override with `NOTION_PROP_APPROVAL`) sends `requestApproval: true` so the scheduled post is held for team approval (`approvalStatus` becomes `pending`) instead of going out. `BULKPUBLISH_REQUEST_APPROVAL=true` applies it to every row.

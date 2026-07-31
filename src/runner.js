@@ -84,6 +84,9 @@ export async function processPage({ config, notion, bp, page, log = console.log 
     // --- Create + publish ------------------------------------------------------
     const scheduled = Boolean(row.scheduledAt);
     const requestApproval = Boolean(row.requestApproval || config.requestApproval);
+    // Row wins over the run-wide default. Both are tri-state, so this tests for
+    // null rather than falsiness — `false` is a deliberate "off", not "unset".
+    const linkTracking = row.linkTrackingOverride ?? config.linkTracking;
     const post = await bp.createPost({
       content: row.caption,
       channels: targetChannels.map((c) => ({ channelId: c.id })),
@@ -91,6 +94,7 @@ export async function processPage({ config, notion, bp, page, log = console.log 
       status: scheduled ? "scheduled" : "draft",
       ...(scheduled ? { scheduledAt: row.scheduledAt, timezone: config.timezone } : {}),
       ...(requestApproval ? { requestApproval: true } : {}),
+      ...(linkTracking === null ? {} : { linkTrackingOverride: linkTracking }),
     });
 
     if (scheduled) {

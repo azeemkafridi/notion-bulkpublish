@@ -23,11 +23,19 @@ export function loadConfig(env = process.env) {
       status: env.NOTION_PROP_STATUS || "Status",
       result: env.NOTION_PROP_RESULT || "Result",
       approval: env.NOTION_PROP_APPROVAL || "Request Approval",
+      linkTracking: env.NOTION_PROP_LINK_TRACKING || "Link Tracking",
     },
     // Hold every scheduled post for team approval, even when a row has no
     // "Request Approval" checkbox. Members whose role lacks post:publish
     // (contributors) are held server-side regardless of this setting.
     requestApproval: String(env.BULKPUBLISH_REQUEST_APPROVAL || "").toLowerCase() === "true",
+    // Force bulkpubli.sh link tracking on or off for every row. Tri-state, so
+    // it is null (inherit the organization setting) unless explicitly set —
+    // "false" here is a real "off", not merely "unset".
+    linkTracking:
+      String(env.BULKPUBLISH_LINK_TRACKING || "").toLowerCase() === "true" ? true
+      : String(env.BULKPUBLISH_LINK_TRACKING || "").toLowerCase() === "false" ? false
+      : null,
     statusValues: {
       ready: env.NOTION_STATUS_READY || "Ready",
       posting: env.NOTION_STATUS_POSTING || "Posting",

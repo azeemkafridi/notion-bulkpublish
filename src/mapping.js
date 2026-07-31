@@ -78,7 +78,30 @@ export function extractRow(page, propNames) {
     requestApproval = /^(yes|true|required?)$/i.test(approvalProp.select?.name || "");
   }
 
-  return { caption: caption.trim(), channelNames, mediaFiles, scheduledAt, status, requestApproval };
+  // Optional "Link Tracking" column. Tri-state, unlike the approval flag: true
+  // forces bulkpubli.sh shortening for this row, false forces plain links, and
+  // null (no column, or an empty/unrecognised select) inherits the organization
+  // setting. A checkbox can only express two of those, so an unticked checkbox
+  // is read as "inherit" rather than "off" — use a select to force it off.
+  const linkProp = props[propNames.linkTracking];
+  let linkTrackingOverride = null;
+  if (linkProp?.type === "checkbox") {
+    linkTrackingOverride = linkProp.checkbox ? true : null;
+  } else if (linkProp?.type === "select") {
+    const v = (linkProp.select?.name || "").trim();
+    if (/^(on|yes|true|enabled?)$/i.test(v)) linkTrackingOverride = true;
+    else if (/^(off|no|false|disabled?)$/i.test(v)) linkTrackingOverride = false;
+  }
+
+  return {
+    caption: caption.trim(),
+    channelNames,
+    mediaFiles,
+    scheduledAt,
+    status,
+    requestApproval,
+    linkTrackingOverride,
+  };
 }
 
 /**

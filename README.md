@@ -49,6 +49,7 @@ Create a database with these properties (names are the defaults; override any of
 | `Status`   | Select *or* Status           | Options: `Ready`, `Posting`, `Posted`, `Failed`. You set **Ready**; the service manages the rest. |
 | `Result`   | Rich text (*or* URL)         | Written by the service: platform post URLs on success, the error message on failure. |
 | `Request Approval` | Checkbox (optional)  | Tick to hold the post for team approval instead of publishing (see below). |
+| `Link Tracking` | Select *or* Checkbox (optional) | Per-post override for bulkpubli.sh link tracking (see below). Use a **Select** with `On`/`Off` to force it either way; a checkbox can only force it *on*. |
 
 ### 3. BulkPublish API key
 
@@ -100,6 +101,23 @@ BulkPublish teams can require posts to be reviewed before they go out. Approval 
 - Members whose role lacks `post:publish` (contributors) are held for approval **server-side regardless of the checkbox**. If such a key tries to publish immediately, the row is marked **Failed** with *"Your role can't publish directly — submit for approval instead."*
 
 The library client also exposes `approvePost(id)`, `rejectPost(id, reason)` and `listPosts({ approvalStatus })` for scripting your own review tooling.
+
+## Link tracking
+
+BulkPublish can rewrite the links in a post to `bulkpubli.sh` short URLs and count the clicks — something no platform API reports (X removed outbound click data entirely). It is **off by default** and opt-in per organization in *Settings → Link Tracking*.
+
+The optional **`Link Tracking`** column overrides that setting for one row:
+
+- **Select** with `On` / `Off` — forces tracking on or off for that row. This is the only way to express a real "off".
+- **Checkbox** — ticked forces tracking on; **unticked means "inherit", not "off"**. A checkbox has no third state, and reading unticked as "off" would silently disable tracking on every row the moment you added the column.
+- No column, or an empty/unrecognised select → inherits the organization setting.
+
+`BULKPUBLISH_LINK_TRACKING=true|false` applies an override to every row; a row's own column wins over it.
+
+Two things worth knowing:
+
+- Links are rewritten **at publish time, per channel**, so the same post going to two accounts on one platform gets distinct codes and their clicks are counted separately.
+- Shortening is **skipped** for any channel where the rewrite would push the post past that platform's character limit. A short URL is 28 characters and can be *longer* than the link it replaces, so on X (280) or Bluesky (300) a post that was accepted could otherwise fail to publish. The post still goes out — with its original links — and records no clicks for that channel.
 
 ## Character limits (checked client-side)
 

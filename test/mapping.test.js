@@ -17,6 +17,7 @@ const PROPS = {
   status: "Status",
   result: "Result",
   approval: "Request Approval",
+  linkTracking: "Link Tracking",
 };
 
 /** Fake Notion page mimicking the real API shape. */
@@ -82,6 +83,43 @@ test("extractRow reads the optional Request Approval column", () => {
     extractRow(makePage({ "Request Approval": { type: "select", select: { name: "Yes" } } }), PROPS)
       .requestApproval,
     true
+  );
+});
+
+test("extractRow reads the optional Link Tracking column as a tri-state", () => {
+  // No column at all → null, meaning "inherit the organization setting".
+  // This must NOT be false: false is a deliberate "publish links as written".
+  assert.equal(extractRow(makePage(), PROPS).linkTrackingOverride, null);
+
+  // A checkbox can only say on-or-nothing, so unticked stays null rather than
+  // silently forcing tracking off for every row that has the column.
+  assert.equal(
+    extractRow(makePage({ "Link Tracking": { type: "checkbox", checkbox: true } }), PROPS)
+      .linkTrackingOverride,
+    true
+  );
+  assert.equal(
+    extractRow(makePage({ "Link Tracking": { type: "checkbox", checkbox: false } }), PROPS)
+      .linkTrackingOverride,
+    null
+  );
+
+  // A select is the only way to express a real "off".
+  assert.equal(
+    extractRow(makePage({ "Link Tracking": { type: "select", select: { name: "Off" } } }), PROPS)
+      .linkTrackingOverride,
+    false
+  );
+  assert.equal(
+    extractRow(makePage({ "Link Tracking": { type: "select", select: { name: "On" } } }), PROPS)
+      .linkTrackingOverride,
+    true
+  );
+  // An unrecognised or empty select falls back to inherit.
+  assert.equal(
+    extractRow(makePage({ "Link Tracking": { type: "select", select: { name: "maybe" } } }), PROPS)
+      .linkTrackingOverride,
+    null
   );
 });
 

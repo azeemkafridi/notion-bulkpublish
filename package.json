@@ -1,7 +1,7 @@
 {
   "name": "notion-bulkpublish",
-  "version": "1.2.0",
-  "description": "Publish to 14 social media platforms from a Notion database via BulkPublish",
+  "version": "1.3.0",
+  "description": "Publish to 15 social media platforms from a Notion database via BulkPublish",
   "type": "module",
   "main": "src/index.js",
   "bin": {
@@ -10,7 +10,7 @@
   "scripts": {
     "start": "node src/cli.js",
     "once": "node src/cli.js once",
-    "test": "node --test test/"
+    "test": "node --test test/*.test.js"
   },
   "keywords": [
     "notion",
