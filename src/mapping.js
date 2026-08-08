@@ -16,6 +16,11 @@ export const CHAR_LIMITS = {
   tiktok: 2200,
   youtube: 5000,
   facebook: 63206,
+  reddit: 40000,
+  discord: 2000,
+  // 4096 for a standalone message; a caption riding along with media caps at 1024.
+  telegram: 4096,
+  tumblr: 32768,
 };
 
 const URL_RE = /https?:\/\/\S+/i;

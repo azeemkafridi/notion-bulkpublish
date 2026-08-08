@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1 (2026-08-08)
+
+- Fixed: **`CHAR_LIMITS` was missing Reddit, Discord, Telegram and Tumblr**, so the client-side caption guard silently skipped every row targeting them — a 3,000-character caption bound for Discord (limit 2,000) passed local validation and only failed server-side at publish. Added Reddit 40,000, Discord 2,000, Telegram 4,096 and Tumblr 32,768. This was the only integration whose platform map still lagged the 15 supported platforms. 14 tests pass.
+
 ## 1.3.0 (2026-08-01)
 
 - **Link tracking.** New optional `Link Tracking` column (override the name with `NOTION_PROP_LINK_TRACKING`) sets `linkTrackingOverride` per row: a **Select** of `On`/`Off` forces bulkpubli.sh shortening either way, while a **Checkbox** can only force it on — unticked means *inherit*, not *off*, so adding the column never silently disables tracking. `BULKPUBLISH_LINK_TRACKING=true|false` applies a run-wide override, and a row's own column wins over it.
