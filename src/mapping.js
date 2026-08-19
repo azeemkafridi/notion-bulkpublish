@@ -21,6 +21,8 @@ export const CHAR_LIMITS = {
   // 4096 for a standalone message; a caption riding along with media caps at 1024.
   telegram: 4096,
   tumblr: 32768,
+  // Caption only reaches Snapchat as the Spotlight description / saved-story title fallback.
+  snapchat: 160,
 };
 
 const URL_RE = /https?:\/\/\S+/i;

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.0 (2026-08-19)
+
+- **Snapchat support (16th platform).** `snapchat` added to the platform character-limit map (160 — the caption is only used as the Spotlight description and as a saved-story title fallback; plain Snapchat stories carry no text) and display names. Every Snapchat post requires exactly ONE media file: a jpg/png image or an mp4 video; Spotlight is video-only (6-60s). Post types: `story` (default), `saved_story`, `spotlight`.
+- Package description: 15 -> 16 platforms.
+
 ## 1.3.1 (2026-08-08)
 
 - Fixed: **`CHAR_LIMITS` was missing Reddit, Discord, Telegram and Tumblr**, so the client-side caption guard silently skipped every row targeting them — a 3,000-character caption bound for Discord (limit 2,000) passed local validation and only failed server-side at publish. Added Reddit 40,000, Discord 2,000, Telegram 4,096 and Tumblr 32,768. This was the only integration whose platform map still lagged the 15 supported platforms. 14 tests pass.
