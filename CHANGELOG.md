@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.1 (2026-08-26)
+
+### Changed
+
+- Package description said 16 platforms, counting Reddit, which cannot be newly
+  connected. Now 15, matching the other integrations.
+
 ## 1.4.0 (2026-08-19)
 
 - **Snapchat support (16th platform).** `snapchat` added to the platform character-limit map (160 — the caption is only used as the Spotlight description and as a saved-story title fallback; plain Snapchat stories carry no text) and display names. Every Snapchat post requires exactly ONE media file: a jpg/png image or an mp4 video; Spotlight is video-only (6-60s). Post types: `story` (default), `saved_story`, `spotlight`.
