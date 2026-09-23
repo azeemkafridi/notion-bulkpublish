@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.4.2 (2026-09-23)
+
+### Changed
+
+- Approval docs (README and the `approvePost` / `rejectPost` JSDoc) match the server:
+  approving publishes a pending post at its scheduled time, or immediately if that time
+  passed less than 15 minutes ago. If it passed more than 15 minutes ago, the post is
+  approved but not published — it comes back with status `draft` (approvalStatus
+  `approved`, scheduledAt unchanged) and the author is notified to choose a new time.
+- Documented the 409 that approve and reject return when the post stopped awaiting
+  approval while the request was in flight (approved, rejected or withdrawn by someone
+  else). Reload it and review again.
+
 ## 1.4.1 (2026-08-26)
 
 ### Changed

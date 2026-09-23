@@ -94,13 +94,13 @@ If anything goes wrong, Status becomes **Failed** and **Result** contains the ex
 
 ## Approval flow
 
-BulkPublish teams can require posts to be reviewed before they go out. Approval is **orthogonal to the post status**: a post whose `approvalStatus` is `pending` or `rejected` is skipped by the scheduler even when it is scheduled and overdue.
+BulkPublish teams can require posts to be reviewed before they go out. Approval is **orthogonal to the post status**: a post whose `approvalStatus` is `pending` or `rejected` does not publish, even when it is scheduled and its time has passed.
 
 - Tick the optional **`Request Approval`** checkbox on a row (or set `BULKPUBLISH_REQUEST_APPROVAL=true` to apply it to every row) and the created post gets `approvalStatus = pending`. **Result** then reads *"Waiting for approval…"* rather than claiming the post is on its way.
-- A teammate whose role has `post:approve` (owner, admin, approver) approves or rejects it at [app.bulkpublish.com/posts](https://app.bulkpublish.com/posts). Approving an already-overdue post publishes it immediately; rejecting returns it to draft with a reason and notifies the author.
+- A teammate whose role has `post:approve` (owner, admin, approver) approves or rejects it at [app.bulkpublish.com/posts](https://app.bulkpublish.com/posts). Approving publishes the post at its scheduled time, or immediately if that time passed less than 15 minutes ago; if it passed more than 15 minutes ago, the post is approved but kept as a draft and the author is notified to choose a new time. Rejecting returns it to draft with a reason and notifies the author.
 - Members whose role lacks `post:publish` (contributors) are held for approval **server-side regardless of the checkbox**. If such a key tries to publish immediately, the row is marked **Failed** with *"Your role can't publish directly — submit for approval instead."*
 
-The library client also exposes `approvePost(id)`, `rejectPost(id, reason)` and `listPosts({ approvalStatus })` for scripting your own review tooling.
+The library client also exposes `approvePost(id)`, `rejectPost(id, reason)` and `listPosts({ approvalStatus })` for scripting your own review tooling. After `approvePost`, check the returned post's `status`: `draft` means it was approved too late to publish and needs a new time. Both calls return 409 if the post stopped awaiting approval while the request was in flight (someone else approved, rejected or withdrew it); reload it and review again.
 
 ## Link tracking
 

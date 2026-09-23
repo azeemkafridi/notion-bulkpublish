@@ -90,8 +90,15 @@ export class BulkPublishClient {
   /**
    * POST /api/posts/{id}/approve — requires a role with post:approve (owner,
    * admin, approver). Releases a post with approvalStatus 'pending': it
-   * publishes at its scheduled time, or immediately if that time has already
-   * passed. The author is notified in-app.
+   * publishes at its scheduled time, or immediately if that time passed less
+   * than 15 minutes ago. If the scheduled time passed more than 15 minutes ago,
+   * the post is approved but not published: it comes back with status 'draft'
+   * (approvalStatus 'approved', scheduledAt unchanged) and the author is
+   * notified to choose a new time. Check the returned `status`.
+   *
+   * 409 CONFLICT: the post stopped awaiting approval while the request was in
+   * flight (approved, rejected or withdrawn by someone else). Reload it and
+   * review again.
    */
   approvePost(id) {
     return this.#request("POST", `/api/posts/${id}/approve`);
@@ -101,7 +108,8 @@ export class BulkPublishClient {
    * POST /api/posts/{id}/reject — requires a role with post:approve. The post
    * returns to draft with approvalStatus 'rejected' and the optional reason
    * (max 2000 chars); the author is notified and can edit + reschedule to
-   * resubmit for approval.
+   * resubmit for approval. Returns 409 CONFLICT, like approvePost, when the
+   * post stopped awaiting approval while the request was in flight.
    */
   rejectPost(id, reason) {
     return this.#request("POST", `/api/posts/${id}/reject`, {
