@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.4 (2026-09-24)
+
+### Changed
+
+- **A row with no Schedule date that is held for approval now publishes as soon
+  as it is approved, however late.** Previously an approval more than 15
+  minutes after the run kept it as a draft to reschedule by hand. Rows with
+  their own Schedule date are unchanged.
+
 ## 1.4.3 (2026-09-24)
 
 ### Fixed

@@ -115,8 +115,8 @@ export async function processPage({ config, notion, bp, page, log = console.log 
     if (post.approvalStatus === "pending") {
       const msg =
         `Post ${post.id} is awaiting team approval (approvalStatus "pending") and will not publish until ` +
-        `a teammate with the approver role approves it at https://app.bulkpublish.com/posts. Approved within ` +
-        `15 minutes, it publishes right away; approved later, it is kept as a draft to reschedule.`;
+        `a teammate with the approver role approves it at https://app.bulkpublish.com/posts. It publishes ` +
+        `as soon as it is approved.`;
       log(`[row] ${msg}`);
       await notion.updatePage(page, { status: config.statusValues.posted, result: msg });
       return;

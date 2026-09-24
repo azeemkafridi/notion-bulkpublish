@@ -181,9 +181,10 @@ export function checkCharLimits(caption, targetChannels) {
  * approval requested and no Schedule date it is sent as `scheduled` for now
  * instead: the API applies approval only to scheduled posts and ignores
  * `requestApproval` on a draft, so a draft would come back unheld and be
- * published with no review. Held this way it does not publish until approved;
- * approved within 15 minutes it publishes right away, approved later it comes
- * back as an approved draft for the author to reschedule.
+ * published with no review. Held this way it does not publish until approved,
+ * and `publishWhenApproved` makes it publish as soon as it is approved, however
+ * late. A row with its own Schedule keeps the default: approved more than 15
+ * minutes late, it comes back as an approved draft for the author to reschedule.
  */
 export function buildPostBody({
   caption,
@@ -206,6 +207,9 @@ export function buildPostBody({
     if (timezone) body.timezone = timezone;
   } else if (requestApproval) {
     body.scheduledAt = new Date(now).toISOString();
+    // No time was chosen, so the post should go out as soon as it is
+    // approved, however late. A row's own Schedule keeps the default hold.
+    body.publishWhenApproved = true;
   }
   if (requestApproval) body.requestApproval = true;
   // Tri-state: omitted when null so the post inherits the organization setting.
