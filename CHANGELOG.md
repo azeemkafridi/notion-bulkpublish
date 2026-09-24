@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.4.3 (2026-09-24)
+
+### Fixed
+
+- **Request Approval now holds a row that has no Schedule date.** Such a row was
+  sent as a draft, and BulkPublish applies approval only to scheduled posts, so
+  the request was dropped: the post came back unheld and was published straight
+  away with no review (and a contributor was told to submit for approval even
+  though they had). It is now submitted as scheduled for the current time, comes
+  back `pending`, and does not publish until a teammate approves it. Approved
+  within 15 minutes it publishes right away; approved later it is kept as a
+  draft for the author to reschedule. Scheduled rows are unchanged. The body is
+  built by the new `buildPostBody()` in mapping.js.
+
+### Changed
+
+- The "can't publish directly" message no longer tells you to add a Schedule
+  date; ticking Request Approval is enough.
+- The approve/reject 409 is described fully: the post changed while you were
+  reviewing it (someone else approved, rejected or withdrew it, or, on approve,
+  its scheduled time moved).
+
 ## 1.4.2 (2026-09-23)
 
 ### Changed

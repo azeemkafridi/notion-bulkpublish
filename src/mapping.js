@@ -174,6 +174,45 @@ export function checkCharLimits(caption, targetChannels) {
 }
 
 /** Does the caption contain a link? (X charges ~13x for posts with URLs.) */
+/**
+ * The POST /api/posts body for one row.
+ *
+ * An unscheduled row is a draft the runner publishes straight away. With
+ * approval requested and no Schedule date it is sent as `scheduled` for now
+ * instead: the API applies approval only to scheduled posts and ignores
+ * `requestApproval` on a draft, so a draft would come back unheld and be
+ * published with no review. Held this way it does not publish until approved;
+ * approved within 15 minutes it publishes right away, approved later it comes
+ * back as an approved draft for the author to reschedule.
+ */
+export function buildPostBody({
+  caption,
+  channelIds,
+  mediaIds = [],
+  scheduledAt = null,
+  timezone = null,
+  requestApproval = false,
+  linkTracking = null,
+  now = Date.now(),
+}) {
+  const body = {
+    content: caption,
+    channels: channelIds.map((channelId) => ({ channelId })),
+    mediaFiles: mediaIds,
+    status: scheduledAt || requestApproval ? "scheduled" : "draft",
+  };
+  if (scheduledAt) {
+    body.scheduledAt = scheduledAt;
+    if (timezone) body.timezone = timezone;
+  } else if (requestApproval) {
+    body.scheduledAt = new Date(now).toISOString();
+  }
+  if (requestApproval) body.requestApproval = true;
+  // Tri-state: omitted when null so the post inherits the organization setting.
+  if (linkTracking !== null) body.linkTrackingOverride = linkTracking;
+  return body;
+}
+
 export function captionHasUrl(caption) {
   return URL_RE.test(caption);
 }

@@ -96,9 +96,9 @@ export class BulkPublishClient {
    * (approvalStatus 'approved', scheduledAt unchanged) and the author is
    * notified to choose a new time. Check the returned `status`.
    *
-   * 409 CONFLICT: the post stopped awaiting approval while the request was in
-   * flight (approved, rejected or withdrawn by someone else). Reload it and
-   * review again.
+   * 409 CONFLICT: the post changed while it was being reviewed — someone else
+   * approved, rejected or withdrew it, or its scheduled time moved. Reload it
+   * and review again.
    */
   approvePost(id) {
     return this.#request("POST", `/api/posts/${id}/approve`);
@@ -108,8 +108,8 @@ export class BulkPublishClient {
    * POST /api/posts/{id}/reject — requires a role with post:approve. The post
    * returns to draft with approvalStatus 'rejected' and the optional reason
    * (max 2000 chars); the author is notified and can edit + reschedule to
-   * resubmit for approval. Returns 409 CONFLICT, like approvePost, when the
-   * post stopped awaiting approval while the request was in flight.
+   * resubmit for approval. Returns 409 CONFLICT when someone else decided or
+   * withdrew the post while it was being reviewed.
    */
   rejectPost(id, reason) {
     return this.#request("POST", `/api/posts/${id}/reject`, {

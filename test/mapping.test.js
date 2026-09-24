@@ -6,6 +6,7 @@ import {
   checkCharLimits,
   captionHasUrl,
   CHAR_LIMITS,
+  buildPostBody,
 } from "../src/mapping.js";
 import { estimateXCostDcents, buildCostPreview } from "../src/cost.js";
 
@@ -265,4 +266,28 @@ test("resolveChannels errors clearly when a set has no active channels, and list
     () => resolveChannels(["myspace"], CHANNELS, CHANNEL_SETS),
     /channel set name.*Channel sets: Launch Day, Dead Set/s
   );
+});
+
+test("buildPostBody: approval with no Schedule date is sent scheduled for now, never as a draft", () => {
+  // The API ignores requestApproval on a draft, which the runner would then
+  // publish with no review.
+  const now = Date.parse("2026-09-24T08:00:00Z");
+  const held = buildPostBody({ caption: "Hi", channelIds: ["c1"], requestApproval: true, timezone: "UTC", now });
+  assert.equal(held.status, "scheduled");
+  assert.equal(held.scheduledAt, "2026-09-24T08:00:00.000Z");
+  assert.equal(held.requestApproval, true);
+
+  const scheduled = buildPostBody({
+    caption: "Hi", channelIds: ["c1"], requestApproval: true, scheduledAt: "2026-10-01T09:00", timezone: "Asia/Karachi", now,
+  });
+  assert.equal(scheduled.status, "scheduled");
+  assert.equal(scheduled.scheduledAt, "2026-10-01T09:00");
+  assert.equal(scheduled.timezone, "Asia/Karachi");
+
+  const plain = buildPostBody({ caption: "Hi", channelIds: ["c1"], mediaIds: ["m1"], now });
+  assert.equal(plain.status, "draft");
+  assert.equal("scheduledAt" in plain, false);
+  assert.equal("requestApproval" in plain, false);
+  assert.deepEqual(plain.mediaFiles, ["m1"]);
+  assert.equal(buildPostBody({ caption: "Hi", channelIds: ["c1"], linkTracking: false }).linkTrackingOverride, false);
 });

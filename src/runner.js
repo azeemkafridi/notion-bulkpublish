@@ -1,4 +1,4 @@
-import { extractRow, resolveChannels, checkCharLimits } from "./mapping.js";
+import { extractRow, resolveChannels, checkCharLimits, buildPostBody } from "./mapping.js";
 import { buildCostPreview } from "./cost.js";
 
 const POLL_STATUS_ATTEMPTS = 15;
@@ -87,15 +87,17 @@ export async function processPage({ config, notion, bp, page, log = console.log 
     // Row wins over the run-wide default. Both are tri-state, so this tests for
     // null rather than falsiness — `false` is a deliberate "off", not "unset".
     const linkTracking = row.linkTrackingOverride ?? config.linkTracking;
-    const post = await bp.createPost({
-      content: row.caption,
-      channels: targetChannels.map((c) => ({ channelId: c.id })),
-      mediaFiles: mediaIds,
-      status: scheduled ? "scheduled" : "draft",
-      ...(scheduled ? { scheduledAt: row.scheduledAt, timezone: config.timezone } : {}),
-      ...(requestApproval ? { requestApproval: true } : {}),
-      ...(linkTracking === null ? {} : { linkTrackingOverride: linkTracking }),
-    });
+    const post = await bp.createPost(
+      buildPostBody({
+        caption: row.caption,
+        channelIds: targetChannels.map((c) => c.id),
+        mediaIds,
+        scheduledAt: row.scheduledAt || null,
+        timezone: config.timezone,
+        requestApproval,
+        linkTracking: linkTracking ?? null,
+      })
+    );
 
     if (scheduled) {
       const platforms = targetChannels.map((c) => c.platform).join(", ");
@@ -109,11 +111,12 @@ export async function processPage({ config, notion, bp, page, log = console.log 
       return;
     }
 
-    // An unscheduled post held for approval can't be published from here.
+    // An unscheduled row held for approval was submitted scheduled for now.
     if (post.approvalStatus === "pending") {
       const msg =
         `Post ${post.id} is awaiting team approval (approvalStatus "pending") and will not publish until ` +
-        `a teammate with the approver role approves it at https://app.bulkpublish.com/posts.`;
+        `a teammate with the approver role approves it at https://app.bulkpublish.com/posts. Approved within ` +
+        `15 minutes, it publishes right away; approved later, it is kept as a draft to reschedule.`;
       log(`[row] ${msg}`);
       await notion.updatePage(page, { status: config.statusValues.posted, result: msg });
       return;
@@ -125,8 +128,8 @@ export async function processPage({ config, notion, bp, page, log = console.log 
       if (err.code === "APPROVAL_REQUIRED" || err.status === 403) {
         return await fail(
           "Your role can't publish directly — submit for approval instead. " +
-            `Tick the "${config.properties.approval}" column (or set BULKPUBLISH_REQUEST_APPROVAL=true) ` +
-            `and add a Schedule date, then a teammate with the approver role approves post ${post.id}.`
+            `Tick the "${config.properties.approval}" column (or set BULKPUBLISH_REQUEST_APPROVAL=true), ` +
+            `then a teammate with the approver role approves it (post ${post.id} was left as a draft).`
         );
       }
       throw err;
