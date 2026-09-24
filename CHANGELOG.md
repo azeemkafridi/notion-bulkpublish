@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.4.5 (2026-09-24)
+
+### Added
+
+- `approvePost(id, { ifUnmodifiedSince })` and
+  `rejectPost(id, reason, { ifUnmodifiedSince })`: pass the post's `updatedAt`
+  as you loaded it and the review is refused (409, nothing saved) if the post
+  was edited after that. Without it, requests are unchanged.
+
+### Fixed
+
+- The approve/reject 409 is no longer said to mean a moved scheduled time,
+  which never causes it. It means the post changed since you loaded it or is
+  no longer waiting for approval.
+
 ## 1.4.4 (2026-09-24)
 
 ### Changed

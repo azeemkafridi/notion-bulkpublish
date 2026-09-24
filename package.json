@@ -1,6 +1,6 @@
 {
   "name": "notion-bulkpublish",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "description": "Publish to 15 social media platforms from a Notion database via BulkPublish",
   "type": "module",
   "main": "src/index.js",

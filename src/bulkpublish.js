@@ -96,25 +96,31 @@ export class BulkPublishClient {
    * (approvalStatus 'approved', scheduledAt unchanged) and the author is
    * notified to choose a new time. Check the returned `status`.
    *
-   * 409 CONFLICT: the post changed while it was being reviewed — someone else
-   * approved, rejected or withdrew it, or its scheduled time moved. Reload it
-   * and review again.
+   * Pass `{ ifUnmodifiedSince }` (the post's `updatedAt` as you loaded it) to
+   * have the approval refused if the post was edited since; nothing is saved.
+   *
+   * 409 CONFLICT: the post changed since you loaded it (checked when
+   * ifUnmodifiedSince is sent; error.updatedAt is its current value) or is no
+   * longer awaiting approval. Reload it and review again. 400 when
+   * ifUnmodifiedSince is not a valid timestamp.
    */
-  approvePost(id) {
-    return this.#request("POST", `/api/posts/${id}/approve`);
+  approvePost(id, { ifUnmodifiedSince } = {}) {
+    return this.#request("POST", `/api/posts/${id}/approve`, {
+      body: ifUnmodifiedSince ? { ifUnmodifiedSince: String(ifUnmodifiedSince) } : undefined,
+    });
   }
 
   /**
    * POST /api/posts/{id}/reject — requires a role with post:approve. The post
    * returns to draft with approvalStatus 'rejected' and the optional reason
    * (max 2000 chars); the author is notified and can edit + reschedule to
-   * resubmit for approval. Returns 409 CONFLICT when someone else decided or
-   * withdrew the post while it was being reviewed.
+   * resubmit for approval. Accepts `{ ifUnmodifiedSince }` and returns 409/400
+   * on the same terms as approvePost().
    */
-  rejectPost(id, reason) {
-    return this.#request("POST", `/api/posts/${id}/reject`, {
-      body: reason ? { reason: String(reason).slice(0, 2000) } : {},
-    });
+  rejectPost(id, reason, { ifUnmodifiedSince } = {}) {
+    const body = reason ? { reason: String(reason).slice(0, 2000) } : {};
+    if (ifUnmodifiedSince) body.ifUnmodifiedSince = String(ifUnmodifiedSince);
+    return this.#request("POST", `/api/posts/${id}/reject`, { body });
   }
 
   /** GET /api/posts/{id} → includes postPlatforms: [{ platform, status, errorMessage, platformUrl }] */
