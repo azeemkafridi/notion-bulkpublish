@@ -1,7 +1,7 @@
 {
   "name": "notion-bulkpublish",
-  "version": "1.4.5",
-  "description": "Publish to 15 social media platforms from a Notion database via BulkPublish",
+  "version": "1.5.0",
+  "description": "Publish to 16 social media platforms from a Notion database via BulkPublish",
   "type": "module",
   "main": "src/index.js",
   "bin": {
@@ -28,7 +28,13 @@
     "threads",
     "bluesky",
     "pinterest",
-    "mastodon"
+    "mastodon",
+    "reddit",
+    "discord",
+    "telegram",
+    "tumblr",
+    "snapchat",
+    "google-business-profile"
   ],
   "license": "MIT",
   "homepage": "https://github.com/azeemkafridi/notion-bulkpublish",
@@ -49,6 +55,7 @@
     "dotenv": "^16.4.5"
   },
   "files": [
-    "src"
+    "src",
+    "LICENSE"
   ]
 }

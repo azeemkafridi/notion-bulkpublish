@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.5.0 (2026-10-03)
+
+### Fixed
+
+- A destination the platform could not confirm (`unconfirmed`) no longer marks
+  the row Posted. The row is marked Failed and Result warns you to check the
+  account before retrying, so you do not post twice.
+- A destination is counted as published only when its status is `published`,
+  not just because it has a URL or no error message.
+- Removed checks for status values the API never returns (`queued`,
+  `success`, `error`).
+
+### Docs
+
+- README names all 16 platforms and lists the character limit for each.
+- README explains what to do with a row left at Posting after an interruption.
+- Added the MIT LICENSE file.
+
 ## 1.4.5 (2026-09-24)
 
 ### Added

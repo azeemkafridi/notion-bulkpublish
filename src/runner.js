@@ -3,7 +3,7 @@ import { buildCostPreview } from "./cost.js";
 
 const POLL_STATUS_ATTEMPTS = 15;
 const POLL_STATUS_DELAY_MS = 4000;
-const PENDING_STATUSES = new Set(["pending", "publishing", "queued", "processing"]);
+const PENDING_STATUSES = new Set(["pending", "publishing", "processing"]);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -159,11 +159,21 @@ async function waitForOutcome(bp, postId, log) {
     log(`[status] waiting… (${platforms.map((p) => `${p.platform}:${p.status}`).join(", ") || "no platforms yet"})`);
   }
 
-  const succeeded = platforms.filter((p) => p.platformUrl || p.status === "published" || p.status === "success");
-  const failed = platforms.filter((p) => p.errorMessage || p.status === "failed" || p.status === "error");
+  const succeeded = platforms.filter((p) => p.status === "published");
+  // "unconfirmed": the request may have reached the platform but no answer came
+  // back. Never report it as posted, and warn before a retry duplicates it.
+  const failed = platforms.filter((p) => p.status === "failed" || p.status === "unconfirmed");
   const parts = [];
   for (const p of succeeded) parts.push(`${p.platform}: ${p.platformUrl || "published"}`);
-  for (const p of failed) parts.push(`${p.platform} FAILED: ${p.errorMessage || "unknown error"}`);
+  for (const p of failed) {
+    if (p.status === "unconfirmed") {
+      parts.push(
+        `${p.platform} UNCONFIRMED: the platform did not confirm the post. Check the account before retrying, or it may be posted twice.`
+      );
+    } else {
+      parts.push(`${p.platform} FAILED: ${p.errorMessage || "unknown error"}`);
+    }
+  }
   const stillPending = platforms.filter((p) => !succeeded.includes(p) && !failed.includes(p));
   for (const p of stillPending) parts.push(`${p.platform}: still ${p.status} (check https://app.bulkpublish.com/posts)`);
   return {

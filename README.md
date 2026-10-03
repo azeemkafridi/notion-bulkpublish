@@ -10,7 +10,7 @@
 
 Add rows to a Notion database. When you flip a row's **Status** to **Ready**, this service publishes it to your connected channels via the [BulkPublish](https://bulkpublish.com) API, writes the resulting post URL(s) back into the row, and flips Status to **Posted** (or **Failed** with the exact error).
 
-Supports all BulkPublish platforms: Facebook, Instagram, X (Twitter), TikTok, YouTube, Threads, Bluesky, Pinterest, Google Business Profile, LinkedIn, Mastodon, Reddit, Discord, Telegram.
+Supports all BulkPublish platforms: Facebook, Instagram, X (Twitter), TikTok, YouTube, Threads, Bluesky, Pinterest, Google Business Profile, LinkedIn, Mastodon, Reddit, Discord, Telegram, Tumblr, Snapchat. (Reddit is listed for completeness; it can only be used once it is available for your BulkPublish account.)
 
 ## How it works
 
@@ -90,6 +90,10 @@ Example crontab entry (every 5 minutes):
 4. The post is created — published immediately, or scheduled if `Schedule` is set.
 5. The service polls for per-platform outcomes and writes them into **Result**, then sets Status to **Posted** (or **Failed**).
 
+If a platform reports that it **could not confirm** the post (the request may have reached it but no answer came back), the row is marked **Failed** and Result says so. Check that account before setting the row back to Ready, or you may post twice.
+
+If the service stops in the middle of a row (crash, Ctrl+C, machine sleep), that row stays at **Posting**. It is never picked up again automatically, so nothing is posted twice. Check the post at [app.bulkpublish.com/posts](https://app.bulkpublish.com/posts), then set the row to **Posted** or back to **Ready** yourself.
+
 If anything goes wrong, Status becomes **Failed** and **Result** contains the exact reason (e.g. `Caption is 300 characters, over the limit: x allows 280.`). Fix the row and set it back to **Ready** to retry.
 
 ## Approval flow
@@ -123,10 +127,13 @@ Two things worth knowing:
 
 | Platform | Limit | | Platform | Limit |
 |---|---|---|---|---|
-| X (Twitter) | 280 | | GMB | 1,500 |
-| Bluesky | 300 | | Instagram / TikTok | 2,200 |
-| Threads / Mastodon / Pinterest | 500 | | LinkedIn | 3,000 |
-| YouTube | 5,000 | | Facebook | 63,206 |
+| Snapchat | 160 | | Discord | 2,000 |
+| X (Twitter) | 280 | | Instagram / TikTok | 2,200 |
+| Bluesky | 300 | | LinkedIn | 3,000 |
+| Threads / Mastodon / Pinterest | 500 | | Telegram | 4,096 (1,024 with media) |
+| Google Business Profile | 1,500 | | YouTube | 5,000 |
+| Tumblr | 32,768 | | Reddit | 40,000 |
+| Facebook | 63,206 | | | |
 
 ## Cost & quota notes
 
