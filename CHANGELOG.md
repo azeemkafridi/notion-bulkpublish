@@ -14,7 +14,7 @@
 
 ### Docs
 
-- README names all 16 platforms and lists the character limit for each.
+- README names all 15 supported platforms and lists the character limit for each.
 - README explains what to do with a row left at Posting after an interruption.
 - Added the MIT LICENSE file.
 

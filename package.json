@@ -1,7 +1,7 @@
 {
   "name": "notion-bulkpublish",
   "version": "1.5.0",
-  "description": "Publish to 16 social media platforms from a Notion database via BulkPublish",
+  "description": "Publish to 15 social media platforms from a Notion database via BulkPublish",
   "type": "module",
   "main": "src/index.js",
   "bin": {
@@ -29,7 +29,6 @@
     "bluesky",
     "pinterest",
     "mastodon",
-    "reddit",
     "discord",
     "telegram",
     "tumblr",
