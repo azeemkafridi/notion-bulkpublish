@@ -1,4 +1,4 @@
-import { extractRow, resolveChannels, checkCharLimits, buildPostBody } from "./mapping.js";
+import { extractRow, resolveChannels, checkCharLimits, buildPostBody, resolveDiscordChannel } from "./mapping.js";
 import { buildCostPreview } from "./cost.js";
 
 const POLL_STATUS_ATTEMPTS = 15;
@@ -49,6 +49,17 @@ export async function processPage({ config, notion, bp, page, log = console.log 
     const limitError = checkCharLimits(row.caption, targetChannels);
     if (limitError) return await fail(limitError);
 
+    // Discord posts into one text channel of the connected server; pick it
+    // before anything is uploaded or created.
+    // Keyed by platform, then by BulkPublish channel id.
+    const platformSpecific = {};
+    for (const c of targetChannels.filter((t) => t.platform === "discord")) {
+      const wanted = row.discordChannel || config.discordChannel;
+      const options = wanted || !c.metadata?.channelId ? await bp.getChannelOptions(c.id) : [];
+      const discordId = resolveDiscordChannel(wanted, c, options);
+      if (discordId) (platformSpecific.discord ||= {})[c.id] = { channelId: discordId };
+    }
+
     // --- Cost / quota preview ------------------------------------------------
     const targetsX = targetChannels.some((c) => c.platform === "x");
     const [quota, xUsage] = await Promise.all([
@@ -96,6 +107,7 @@ export async function processPage({ config, notion, bp, page, log = console.log 
         timezone: config.timezone,
         requestApproval,
         linkTracking: linkTracking ?? null,
+        platformSpecific,
       })
     );
 

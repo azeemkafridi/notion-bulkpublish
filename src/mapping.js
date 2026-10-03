@@ -100,6 +100,14 @@ export function extractRow(page, propNames) {
     else if (/^(off|no|false|disabled?)$/i.test(v)) linkTrackingOverride = false;
   }
 
+  // Optional "Discord Channel" column: the Discord text channel (name or id)
+  // a row targeting Discord posts into.
+  const discordProp = props[propNames.discordChannel];
+  let discordChannel = null;
+  if (discordProp?.type === "select") discordChannel = discordProp.select?.name ?? null;
+  else if (discordProp?.type === "rich_text") discordChannel = richTextToPlain(discordProp.rich_text);
+  discordChannel = discordChannel?.trim() || null;
+
   return {
     caption: caption.trim(),
     channelNames,
@@ -108,7 +116,36 @@ export function extractRow(page, propNames) {
     status,
     requestApproval,
     linkTrackingOverride,
+    discordChannel,
   };
+}
+
+/**
+ * Pick the Discord text channel for one connected Discord server.
+ * `wanted` is a channel name (a leading "#" is ignored) or id; `options` is
+ * GET /api/channels/{id}/options. Returns the Discord channel id, or null when
+ * nothing was asked for and the connection has its own saved default.
+ * Throws with the choices when no channel can be determined.
+ */
+export function resolveDiscordChannel(wanted, channel, options) {
+  const names = options.map((o) => `#${o.name}`).join(", ") || "none found";
+  if (!wanted) {
+    if (channel.metadata?.channelId) return null;
+    throw new Error(
+      `Discord needs a channel to post in. Set the "Discord Channel" column (or BULKPUBLISH_DISCORD_CHANNEL) ` +
+        `to one of the channels in "${channel.accountName}": ${names}.`
+    );
+  }
+  const value = String(wanted).trim().replace(/^#/, "").toLowerCase();
+  const match =
+    options.find((o) => String(o.id) === value) ||
+    options.find((o) => (o.name || "").toLowerCase() === value);
+  if (!match) {
+    throw new Error(
+      `Discord channel "${wanted}" not found in "${channel.accountName}". Available: ${names}.`
+    );
+  }
+  return String(match.id);
 }
 
 /**
@@ -194,6 +231,7 @@ export function buildPostBody({
   timezone = null,
   requestApproval = false,
   linkTracking = null,
+  platformSpecific = null,
   now = Date.now(),
 }) {
   const body = {
@@ -214,6 +252,7 @@ export function buildPostBody({
   if (requestApproval) body.requestApproval = true;
   // Tri-state: omitted when null so the post inherits the organization setting.
   if (linkTracking !== null) body.linkTrackingOverride = linkTracking;
+  if (platformSpecific && Object.keys(platformSpecific).length) body.platformSpecific = platformSpecific;
   return body;
 }
 

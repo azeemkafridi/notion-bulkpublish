@@ -50,6 +50,7 @@ Create a database with these properties (names are the defaults; override any of
 | `Result`   | Rich text (*or* URL)         | Written by the service: platform post URLs on success, the error message on failure. |
 | `Request Approval` | Checkbox (optional)  | Tick to hold the post for team approval instead of publishing (see below). |
 | `Link Tracking` | Select *or* Checkbox (optional) | Per-post override for bulkpubli.sh link tracking (see below). Use a **Select** with `On`/`Off` to force it either way; a checkbox can only force it *on*. |
+| `Discord Channel` | Select *or* Rich text (optional) | The Discord text channel to post in, by name (`testing` or `#testing`) or id. Needed for rows that target Discord unless the connection has a saved default; `BULKPUBLISH_DISCORD_CHANNEL` sets one for every row. If it is missing or wrong, the row fails and Result lists the channels you can use. |
 
 ### 3. BulkPublish API key
 

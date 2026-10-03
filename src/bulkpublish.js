@@ -143,6 +143,15 @@ export class BulkPublishClient {
     return data.file;
   }
 
+  /**
+   * GET /api/channels/{id}/options → { type, items: [{ id, name }] }.
+   * For a Discord channel the items are the server's text channels.
+   */
+  async getChannelOptions(channelId) {
+    const data = await this.#request("GET", `/api/channels/${channelId}/options`);
+    return data?.items || [];
+  }
+
   /** GET /api/quotas/usage → { plan, limits, usage } */
   getQuotaUsage() {
     return this.#request("GET", "/api/quotas/usage");

@@ -24,7 +24,11 @@ export function loadConfig(env = process.env) {
       result: env.NOTION_PROP_RESULT || "Result",
       approval: env.NOTION_PROP_APPROVAL || "Request Approval",
       linkTracking: env.NOTION_PROP_LINK_TRACKING || "Link Tracking",
+      discordChannel: env.NOTION_PROP_DISCORD_CHANNEL || "Discord Channel",
     },
+    // Discord text channel (name or id) used when a row's "Discord Channel"
+    // column is empty.
+    discordChannel: env.BULKPUBLISH_DISCORD_CHANNEL || null,
     // Hold every scheduled post for team approval, even when a row has no
     // "Request Approval" checkbox. Members whose role lacks post:publish
     // (contributors) are held server-side regardless of this setting.

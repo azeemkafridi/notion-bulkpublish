@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.6.0 (2026-10-03)
+
+### Fixed
+
+- Rows targeting Discord always failed with "No Discord channel selected for
+  this message", because nothing chose which text channel of the server to
+  post in. Found in the first live test.
+
+### Added
+
+- Optional `Discord Channel` column (select or text): a channel name such as
+  `testing` or `#testing`, or its id. `BULKPUBLISH_DISCORD_CHANNEL` sets a
+  default for every row. A missing or unknown channel now fails the row before
+  anything is uploaded, and Result lists the channels you can choose from.
+
 ## 1.5.0 (2026-10-03)
 
 ### Fixed

@@ -293,3 +293,35 @@ test("buildPostBody: approval with no Schedule date is sent scheduled for now, n
   assert.deepEqual(plain.mediaFiles, ["m1"]);
   assert.equal(buildPostBody({ caption: "Hi", channelIds: ["c1"], linkTracking: false }).linkTrackingOverride, false);
 });
+
+import { resolveDiscordChannel as rdc, extractRow as er, buildPostBody as bpb } from "../src/mapping.js";
+
+const guild = { id: 84, accountName: "BulkPublish", metadata: {} };
+const opts = [{ id: "111", name: "general" }, { id: "222", name: "testing" }];
+
+test("resolveDiscordChannel: matches by name (with or without #) and by id", () => {
+  assert.equal(rdc("testing", guild, opts), "222");
+  assert.equal(rdc("#Testing", guild, opts), "222");
+  assert.equal(rdc("111", guild, opts), "111");
+});
+
+test("resolveDiscordChannel: unknown name fails and lists the choices", () => {
+  assert.throws(() => rdc("nope", guild, opts), /not found in "BulkPublish".*#general, #testing/);
+});
+
+test("resolveDiscordChannel: nothing asked for uses the connection default, else fails with choices", () => {
+  assert.equal(rdc(null, { ...guild, metadata: { channelId: "999" } }, []), null);
+  assert.throws(() => rdc(null, guild, opts), /Discord needs a channel.*#general, #testing/);
+});
+
+test("extractRow: reads the Discord Channel column from a select or text property", () => {
+  const names = { discordChannel: "Discord Channel" };
+  assert.equal(er({ properties: { "Discord Channel": { type: "select", select: { name: "testing" } } } }, names).discordChannel, "testing");
+  assert.equal(er({ properties: { "Discord Channel": { type: "rich_text", rich_text: [{ plain_text: " #general " }] } } }, names).discordChannel, "#general");
+  assert.equal(er({ properties: {} }, names).discordChannel, null);
+});
+
+test("buildPostBody: sends platformSpecific only when there is something in it", () => {
+  assert.deepEqual(bpb({ caption: "x", channelIds: [84], platformSpecific: { discord: { 84: { channelId: "222" } } } }).platformSpecific, { discord: { 84: { channelId: "222" } } });
+  assert.equal("platformSpecific" in bpb({ caption: "x", channelIds: [84], platformSpecific: {} }), false);
+});
