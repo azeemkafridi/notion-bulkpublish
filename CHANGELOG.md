@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.7.0 (2026-10-09)
+
+### Removed
+
+- Reddit is no longer supported. `reddit` is no longer a valid platform
+  value (breaking change).
+
 ## 1.6.0 (2026-10-03)
 
 ### Fixed
